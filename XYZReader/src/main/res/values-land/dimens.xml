@@ -1,0 +1,4 @@
+<resources>
+    <!-- list -->
+    <dimen name="list_app_bar_height">@dimen/list_toolbar_height</dimen>
+</resources>

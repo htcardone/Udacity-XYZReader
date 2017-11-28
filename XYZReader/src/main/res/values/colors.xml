@@ -20,7 +20,7 @@
 
     <color name="theme_primary">#04561A</color>
     <color name="theme_primary_dark">#04561A</color>
-    <color name="theme_accent">#04561A</color>
+    <color name="theme_accent">@color/brand</color>
     <color name="ltgray">#ffe0e0e0</color>
-    <color name="accent_material_dark">#fd5621</color>
+    <color name="brand">#fd5621</color>
 </resources>

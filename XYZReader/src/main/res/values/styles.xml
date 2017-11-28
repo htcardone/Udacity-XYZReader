@@ -30,11 +30,13 @@
     </style>
 
     <style name="Theme.Bacon.List.ArticleTitle" parent="TextAppearance.AppCompat.Subhead">
+        <item name="android:textSize">@dimen/list_title_text_size</item>
         <item name="android:lines">1</item>
         <item name="android:ellipsize">end</item>
     </style>
 
     <style name="Theme.Bacon.List.ArticleSubtitle" parent="TextAppearance.AppCompat.Body1">
+        <item name="android:textSize">@dimen/list_subtitle_text_size</item>
         <item name="android:textColor">@color/ltgray</item>
         <item name="android:lines">2</item>
         <item name="android:ellipsize">end</item>

@@ -1,20 +1,22 @@
 package com.example.xyzreader.ui;
 
+import android.app.Fragment;
+import android.app.LoaderManager;
 import android.content.Intent;
+import android.content.Loader;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.LoaderManager;
 import android.support.v4.app.ShareCompat;
-import android.support.v4.content.Loader;
+import android.support.v7.app.ActionBar;
 import android.support.v7.graphics.Palette;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.text.format.DateUtils;
-import android.text.method.LinkMovementMethod;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -29,8 +31,10 @@ import com.example.xyzreader.data.ArticleLoader;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.List;
 
 /**
  * A fragment representing a single Article detail screen. This fragment is
@@ -39,7 +43,7 @@ import java.util.GregorianCalendar;
  */
 public class ArticleDetailFragment extends Fragment implements
         LoaderManager.LoaderCallbacks<Cursor> {
-    private static final String TAG = "ArticleDetailFragment";
+    private static final String TAG = "ArticleDetail-Fragment";
 
     public static final String ARG_ITEM_ID = "item_id";
     private static final float PARALLAX_FACTOR = 1.25f;
@@ -55,6 +59,9 @@ public class ArticleDetailFragment extends Fragment implements
     //private View mPhotoContainerView;
     private Toolbar mToolbar;
     private ImageView mPhotoView;
+    private TextView mTitleView;
+    private TextView mBylineView;
+    private RecyclerView mRecyclerView;
 
     private int mTopInset;
     private int mScrollY;
@@ -108,8 +115,10 @@ public class ArticleDetailFragment extends Fragment implements
         // the fragment's onCreate may cause the same LoaderManager to be dealt to multiple
         // fragments because their mIndex is -1 (haven't been added to the activity yet). Thus,
         // we do this in onActivityCreated.
-        Log.d(TAG, "onActivityCreated");
+        //Log.d(TAG, "onActivityCreated");
         getLoaderManager().initLoader(0, null, this);
+
+
     }
 
     @Override
@@ -117,6 +126,13 @@ public class ArticleDetailFragment extends Fragment implements
             Bundle savedInstanceState) {
         Log.d(TAG, "onCreateView");
         mRootView = inflater.inflate(R.layout.fragment_article_detail_temp, container, false);
+        mTitleView = mRootView.findViewById(R.id.article_title);
+        mBylineView = mRootView.findViewById(R.id.article_byline);
+        mRecyclerView = mRootView.findViewById(R.id.article_recycler_view);
+        mToolbar = mRootView.findViewById(R.id.toolbar);
+        mPhotoView = mRootView.findViewById(R.id.photo);
+
+        //mPhotoContainerView = mRootView.findViewById(R.id.photo_container);
         /*mDrawInsetsFrameLayout = (DrawInsetsFrameLayout)
                 mRootView.findViewById(R.id.draw_insets_frame_layout);
         mDrawInsetsFrameLayout.setOnInsetsCallback(new DrawInsetsFrameLayout.OnInsetsCallback() {
@@ -137,10 +153,15 @@ public class ArticleDetailFragment extends Fragment implements
             }
         });*/
 
-        mToolbar = mRootView.findViewById(R.id.toolbar);
+        getActivityCast().setSupportActionBar(mToolbar);
+        ActionBar actionBar = getActivityCast().getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setTitle("");
+        }
 
-        mPhotoView = (ImageView) mRootView.findViewById(R.id.photo);
-        //mPhotoContainerView = mRootView.findViewById(R.id.photo_container);
+
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity().getApplicationContext()));
 
         mStatusBarColorDrawable = new ColorDrawable(0);
 
@@ -155,7 +176,7 @@ public class ArticleDetailFragment extends Fragment implements
         });
 
         bindViews();
-        updateStatusBar();
+        //updateStatusBar();
         return mRootView;
     }
 
@@ -200,27 +221,24 @@ public class ArticleDetailFragment extends Fragment implements
     }
 
     private void bindViews() {
-        Log.d(TAG, "bindViews cursor=" + mCursor);
         if (mRootView == null) {
             return;
         }
 
-        TextView titleView = (TextView) mRootView.findViewById(R.id.article_title);
-        TextView bylineView = (TextView) mRootView.findViewById(R.id.article_byline);
-        bylineView.setMovementMethod(new LinkMovementMethod());
-        TextView bodyView = (TextView) mRootView.findViewById(R.id.article_body);
 
+        //mBylineView.setMovementMethod(new LinkMovementMethod());
 
-        //bodyView.setTypeface(Typeface.createFromAsset(getResources().getAssets(), "Rosario-Regular.ttf"));
+        //mBodyView.setTypeface(Typeface.createFromAsset(getResources().getAssets(), "Rosario-Regular.ttf"));
 
         if (mCursor != null) {
             //mRootView.setAlpha(0);
             mRootView.setVisibility(View.VISIBLE);
             //mRootView.animate().alpha(1);
-            titleView.setText(mCursor.getString(ArticleLoader.Query.TITLE));
+            Log.d(TAG, "bindViews cursor=" + mCursor + " " + mCursor.getString(ArticleLoader.Query.TITLE));
+            mTitleView.setText(mCursor.getString(ArticleLoader.Query.TITLE));
             Date publishedDate = parsePublishedDate();
             if (!publishedDate.before(START_OF_EPOCH.getTime())) {
-                bylineView.setText(Html.fromHtml(
+                mBylineView.setText(Html.fromHtml(
                         DateUtils.getRelativeTimeSpanString(
                                 publishedDate.getTime(),
                                 System.currentTimeMillis(), DateUtils.HOUR_IN_MILLIS,
@@ -231,13 +249,18 @@ public class ArticleDetailFragment extends Fragment implements
 
             } else {
                 // If date is before 1902, just show the string
-                bylineView.setText(Html.fromHtml(
+                mBylineView.setText(Html.fromHtml(
                         outputFormat.format(publishedDate) + " by <font color='#ffffff'>"
                         + mCursor.getString(ArticleLoader.Query.AUTHOR)
                                 + "</font>"));
 
             }
-            bodyView.setText(Html.fromHtml(mCursor.getString(ArticleLoader.Query.BODY).replaceAll("(\r\n|\n)", "<br />")));
+
+
+
+            List<String> lines = Arrays.asList(mCursor.getString(ArticleLoader.Query.BODY).split("(\r\n)"));
+            mRecyclerView.setAdapter(new BodyAdapter(lines));
+
             ImageLoaderHelper.getInstance(getActivity()).getImageLoader()
                     .get(mCursor.getString(ArticleLoader.Query.PHOTO_URL), new ImageLoader.ImageListener() {
                         @Override
@@ -258,24 +281,26 @@ public class ArticleDetailFragment extends Fragment implements
 
                         }
                     });
+
+            //Log.d(TAG, "mBodyView setText");
+            //mBodyView.setText(Html.fromHtml(mCursor.getString(ArticleLoader.Query.BODY).replaceAll("(\r\n|\n)", "<br />")));
         } else {
             //mRootView.setVisibility(View.GONE);
-            titleView.setText("N/A");
-            bylineView.setText("N/A" );
-            bodyView.setText("N/A");
+            //mTitleView.setText("N/A");
+            //mBylineView.setText("N/A" );
+            //mBodyView.setText("N/A");
         }
     }
 
-
-
-
     @Override
     public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
+        Log.d(TAG, "onCreateLoader");
         return ArticleLoader.newInstanceForItemId(getActivity(), mItemId);
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
+        Log.d(TAG, "onLoadFinished");
         if (!isAdded()) {
             if (cursor != null) {
                 cursor.close();
@@ -295,6 +320,7 @@ public class ArticleDetailFragment extends Fragment implements
 
     @Override
     public void onLoaderReset(Loader<Cursor> cursorLoader) {
+        Log.d(TAG, "onLoaderReset");
         mCursor = null;
         bindViews();
     }
@@ -313,4 +339,41 @@ public class ArticleDetailFragment extends Fragment implements
                 ? (int) mPhotoContainerView.getTranslationY() + mPhotoView.getHeight() - mScrollY
                 : mPhotoView.getHeight() - mScrollY;
     }*/
+
+    public static class ViewHolder extends RecyclerView.ViewHolder {
+        TextView textViewLine;
+
+        public ViewHolder(View view) {
+            super(view);
+            textViewLine = view.findViewById(R.id.article_line);
+        }
+    }
+
+    private class BodyAdapter extends RecyclerView.Adapter<ViewHolder> {
+        private final List<String> dataset;
+
+        public BodyAdapter(List<String> lines) {
+            dataset = lines;
+        }
+
+        @Override
+        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            View view = getActivityCast()
+                    .getLayoutInflater()
+                    .inflate(R.layout.line_item_detail, parent, false);
+            final ViewHolder viewHolder = new ViewHolder(view);
+
+            return viewHolder;
+        }
+
+        @Override
+        public void onBindViewHolder(ViewHolder holder, int position) {
+            holder.textViewLine.setText(dataset.get(position));
+        }
+
+        @Override
+        public int getItemCount() {
+            return dataset.size();
+        }
+    }
 }

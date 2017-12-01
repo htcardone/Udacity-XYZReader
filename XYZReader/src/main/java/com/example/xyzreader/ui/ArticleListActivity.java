@@ -57,20 +57,21 @@ public class ArticleListActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_article_list);
 
-        mToolbar = (Toolbar) findViewById(R.id.toolbar);
+        mToolbar = findViewById(R.id.toolbar);
+        mSwipeRefreshLayout = findViewById(R.id.swipe_refresh_layout);
+        mRecyclerView = findViewById(R.id.recycler_view);
 
-        final View toolbarContainerView = findViewById(R.id.toolbar_container);
+        //final View toolbarContainerView = findViewById(R.id.toolbar_container);
 
-        mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_refresh_layout);
+        Log.d(TAG, "onCreate initLoader");
+        getLoaderManager().initLoader(0, null, this);
+
         mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
                 refresh();
             }
         });
-
-        mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
-        getLoaderManager().initLoader(0, null, this);
 
         if (savedInstanceState == null) {
             refresh();
@@ -112,11 +113,14 @@ public class ArticleListActivity extends AppCompatActivity implements
 
     @Override
     public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
+        Log.d(TAG, "onCreateLoader");
         return ArticleLoader.newAllArticlesInstance(this);
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
+        Log.d(TAG, "onLoadFinished");
+
         Adapter adapter = new Adapter(cursor);
         adapter.setHasStableIds(true);
         mRecyclerView.setAdapter(adapter);
@@ -127,6 +131,7 @@ public class ArticleListActivity extends AppCompatActivity implements
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
+        Log.d(TAG, "onLoaderReset");
         mRecyclerView.setAdapter(null);
     }
 

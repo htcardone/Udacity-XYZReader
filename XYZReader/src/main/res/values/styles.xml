@@ -23,6 +23,7 @@
         <item name="colorAccent">@color/theme_accent</item>
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
+        <item name="android:windowContentTransitions">true</item>
     </style>
 
     <style name="Theme.Bacon.Detail">
@@ -40,6 +41,10 @@
         <item name="android:textColor">@color/title</item>
         <item name="android:textSize">@dimen/detail_title_text_size</item>
         <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="Theme.Bacon.Detail.ArticleSubtitle" parent="TextAppearance.AppCompat.Small">
+        <item name="android:textColor">@color/subtitle</item>
     </style>
 
     <style name="Theme.Bacon.List.ArticleTitle" parent="TextAppearance.AppCompat.Subhead">

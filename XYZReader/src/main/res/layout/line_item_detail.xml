@@ -15,7 +15,7 @@
         android:layout_marginLeft="@dimen/detail_inner_horiz_margin"
         android:layout_marginRight="@dimen/detail_inner_horiz_margin"
         android:textColorLink="@color/theme_accent"
-        android:textSize="20sp"
+        android:textSize="@dimen/detail_body_text_size"
         android:lineSpacingMultiplier="@fraction/detail_body_line_spacing_multiplier"
         tools:text="@string/paragraph"/>
 </LinearLayout>

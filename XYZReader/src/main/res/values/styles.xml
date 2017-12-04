@@ -27,10 +27,19 @@
 
     <style name="Theme.Bacon.Detail">
         <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
     </style>
 
     <style name="Theme.Bacon.List">
 
+    </style>
+
+    <style name="Theme.Bacon.Detail.ArticleTitle" parent="TextAppearance.AppCompat.Large">
+        <item name="android:fontFamily">sans-serif-condensed</item>
+        <item name="android:lineSpacingMultiplier">0.9</item>
+        <item name="android:textColor">@color/title</item>
+        <item name="android:textSize">@dimen/detail_title_text_size</item>
+        <item name="android:textStyle">bold</item>
     </style>
 
     <style name="Theme.Bacon.List.ArticleTitle" parent="TextAppearance.AppCompat.Subhead">

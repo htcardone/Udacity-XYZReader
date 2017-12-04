@@ -4,12 +4,17 @@ import android.app.Fragment;
 import android.app.LoaderManager;
 import android.content.Intent;
 import android.content.Loader;
+import android.content.res.ColorStateList;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.support.design.widget.AppBarLayout;
+import android.support.design.widget.CollapsingToolbarLayout;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ShareCompat;
+import android.support.v4.view.ViewCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.graphics.Palette;
 import android.support.v7.widget.LinearLayoutManager;
@@ -51,17 +56,20 @@ public class ArticleDetailFragment extends Fragment implements
     private Cursor mCursor;
     private long mItemId;
     private View mRootView;
-    private int mMutedColor = 0xFF333333;
     //private ObservableScrollView mScrollView;
     //private DrawInsetsFrameLayout mDrawInsetsFrameLayout;
     private ColorDrawable mStatusBarColorDrawable;
 
     //private View mPhotoContainerView;
+    private AppBarLayout mAppBar;
+    private CollapsingToolbarLayout mCollapsingToolbar;
     private Toolbar mToolbar;
     private ImageView mPhotoView;
+    private View mMetaBarView;
     private TextView mTitleView;
     private TextView mBylineView;
     private RecyclerView mRecyclerView;
+    private FloatingActionButton mFloatingActionButton;
 
     private int mTopInset;
     private int mScrollY;
@@ -124,13 +132,17 @@ public class ArticleDetailFragment extends Fragment implements
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState) {
-        Log.d(TAG, "onCreateView");
         mRootView = inflater.inflate(R.layout.fragment_article_detail_temp, container, false);
+
+        mAppBar = mRootView.findViewById(R.id.appbar);
+        mMetaBarView = mRootView.findViewById(R.id.meta_bar);
         mTitleView = mRootView.findViewById(R.id.article_title);
         mBylineView = mRootView.findViewById(R.id.article_byline);
         mRecyclerView = mRootView.findViewById(R.id.article_recycler_view);
         mToolbar = mRootView.findViewById(R.id.toolbar);
+        mCollapsingToolbar = mRootView.findViewById(R.id.collapsing_toolbar);
         mPhotoView = mRootView.findViewById(R.id.photo);
+        mFloatingActionButton = mRootView.findViewById(R.id.share_fab);
 
         //mPhotoContainerView = mRootView.findViewById(R.id.photo_container);
         /*mDrawInsetsFrameLayout = (DrawInsetsFrameLayout)
@@ -160,6 +172,21 @@ public class ArticleDetailFragment extends Fragment implements
             actionBar.setTitle("");
         }
 
+        mAppBar.addOnOffsetChangedListener(new AppBarLayout.OnOffsetChangedListener() {
+            @Override
+            public void onOffsetChanged(AppBarLayout appBarLayout, int verticalOffset) {
+                verticalOffset = -1 * verticalOffset;
+                int difference = appBarLayout.getTotalScrollRange() - mToolbar.getHeight();
+
+                if (verticalOffset == difference) {
+                    ViewCompat.animate(mFloatingActionButton).scaleX(1).scaleY(1).start();
+                }
+                else if (verticalOffset > difference) {
+                    ViewCompat.animate(mFloatingActionButton).scaleX(0).scaleY(0).start();
+                }
+            }
+        });
+
 
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity().getApplicationContext()));
 
@@ -176,22 +203,22 @@ public class ArticleDetailFragment extends Fragment implements
         });
 
         bindViews();
-        //updateStatusBar();
+        updateStatusBar();
         return mRootView;
     }
 
     private void updateStatusBar() {
-        int color = 0;
+        /*int color = 0;
         if (mPhotoView != null && mTopInset != 0 && mScrollY > 0) {
             float f = progress(mScrollY,
                     mStatusBarFullOpacityBottom - mTopInset * 3,
                     mStatusBarFullOpacityBottom - mTopInset);
             color = Color.argb((int) (255 * f),
-                    (int) (Color.red(mMutedColor) * 0.9),
-                    (int) (Color.green(mMutedColor) * 0.9),
-                    (int) (Color.blue(mMutedColor) * 0.9));
+                    (int) (Color.red(mDarkMutedColor) * 0.9),
+                    (int) (Color.green(mDarkMutedColor) * 0.9),
+                    (int) (Color.blue(mDarkMutedColor) * 0.9));
         }
-        mStatusBarColorDrawable.setColor(color);
+        mStatusBarColorDrawable.setColor(color);*/
         //mDrawInsetsFrameLayout.setInsetBackground(mStatusBarColorDrawable);
     }
 
@@ -231,11 +258,14 @@ public class ArticleDetailFragment extends Fragment implements
         //mBodyView.setTypeface(Typeface.createFromAsset(getResources().getAssets(), "Rosario-Regular.ttf"));
 
         if (mCursor != null) {
-            //mRootView.setAlpha(0);
+            mRootView.setAlpha(0);
             mRootView.setVisibility(View.VISIBLE);
-            //mRootView.animate().alpha(1);
-            Log.d(TAG, "bindViews cursor=" + mCursor + " " + mCursor.getString(ArticleLoader.Query.TITLE));
-            mTitleView.setText(mCursor.getString(ArticleLoader.Query.TITLE));
+            mRootView.animate().alpha(1);
+
+            String title = mCursor.getString(ArticleLoader.Query.TITLE);
+            mTitleView.setText(title);
+            mCollapsingToolbar.setTitle(title);
+
             Date publishedDate = parsePublishedDate();
             if (!publishedDate.before(START_OF_EPOCH.getTime())) {
                 mBylineView.setText(Html.fromHtml(
@@ -256,9 +286,12 @@ public class ArticleDetailFragment extends Fragment implements
 
             }
 
+            List<String> lines = Arrays.asList(mCursor
+                    .getString(ArticleLoader.Query.BODY)
+                    .replaceAll("(\r\n\r\n)", "<br />")
+                    .replaceAll("(\r\n)", " ")
+                    .split("<br />"));
 
-
-            List<String> lines = Arrays.asList(mCursor.getString(ArticleLoader.Query.BODY).split("(\r\n)"));
             mRecyclerView.setAdapter(new BodyAdapter(lines));
 
             ImageLoaderHelper.getInstance(getActivity()).getImageLoader()
@@ -268,10 +301,14 @@ public class ArticleDetailFragment extends Fragment implements
                             Bitmap bitmap = imageContainer.getBitmap();
                             if (bitmap != null) {
                                 Palette p = Palette.generate(bitmap, 12);
-                                mMutedColor = p.getDarkMutedColor(0xFF333333);
+                                int mutedColor = p.getMutedColor(getResources().getColor(R.color.theme_primary));
+                                int darkMutedColor = p.getDarkMutedColor(getResources().getColor(R.color.theme_primary_dark));
                                 mPhotoView.setImageBitmap(imageContainer.getBitmap());
-                                mRootView.findViewById(R.id.meta_bar)
-                                        .setBackgroundColor(mMutedColor);
+                                mMetaBarView.setBackgroundColor(mutedColor);
+                                mToolbar.setBackgroundColor(mutedColor);
+                                mCollapsingToolbar.setContentScrimColor(mutedColor);
+                                mCollapsingToolbar.setStatusBarScrimColor(darkMutedColor);
+                                mFloatingActionButton.setBackgroundTintList(ColorStateList.valueOf(darkMutedColor));
                                 updateStatusBar();
                             }
                         }
@@ -285,7 +322,7 @@ public class ArticleDetailFragment extends Fragment implements
             //Log.d(TAG, "mBodyView setText");
             //mBodyView.setText(Html.fromHtml(mCursor.getString(ArticleLoader.Query.BODY).replaceAll("(\r\n|\n)", "<br />")));
         } else {
-            //mRootView.setVisibility(View.GONE);
+            mRootView.setVisibility(View.GONE);
             //mTitleView.setText("N/A");
             //mBylineView.setText("N/A" );
             //mBodyView.setText("N/A");
@@ -368,7 +405,8 @@ public class ArticleDetailFragment extends Fragment implements
 
         @Override
         public void onBindViewHolder(ViewHolder holder, int position) {
-            holder.textViewLine.setText(dataset.get(position));
+            Log.d("BodyAdapter", dataset.get(position));
+            holder.textViewLine.setText(Html.fromHtml(dataset.get(position)));
         }
 
         @Override

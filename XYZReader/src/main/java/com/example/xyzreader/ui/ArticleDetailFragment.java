@@ -4,7 +4,6 @@ import android.app.Fragment;
 import android.app.LoaderManager;
 import android.content.Intent;
 import android.content.Loader;
-import android.content.res.ColorStateList;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
@@ -58,7 +57,6 @@ public class ArticleDetailFragment extends Fragment implements
     private long mItemId;
     private View mRootView;
 
-    //private View mPhotoContainerView;
     private AppBarLayout mAppBar;
     private CollapsingToolbarLayout mCollapsingToolbar;
     private Toolbar mToolbar;
@@ -242,15 +240,22 @@ public class ArticleDetailFragment extends Fragment implements
                         @Override
                         public void onSuccess() {
                             Bitmap bitmap = ((BitmapDrawable) mPhotoView.getDrawable()).getBitmap();
-                            Palette p = Palette.generate(bitmap, 12);
-                            int mutedColor = p.getMutedColor(getResources().getColor(R.color.theme_primary));
-                            int darkMutedColor = p.getDarkMutedColor(getResources().getColor(R.color.theme_primary_dark));
+                            Palette.from(bitmap).generate(new Palette.PaletteAsyncListener() {
 
-                            mMetaBarView.setBackgroundColor(mutedColor);
-                            mToolbar.setBackgroundColor(mutedColor);
-                            mCollapsingToolbar.setContentScrimColor(mutedColor);
-                            mCollapsingToolbar.setStatusBarScrimColor(darkMutedColor);
-                            mFloatingActionButton.setBackgroundTintList(ColorStateList.valueOf(darkMutedColor));
+                                @Override
+                                public void onGenerated(Palette palette) {
+                                    int mutedColor = palette.getMutedColor(getResources()
+                                            .getColor(R.color.theme_primary));
+                                    int darkMutedColor = palette.getDarkMutedColor(getResources()
+                                            .getColor(R.color.theme_primary_dark));
+
+                                    mMetaBarView.setBackgroundColor(mutedColor);
+                                    mToolbar.setBackgroundColor(mutedColor);
+                                    mCollapsingToolbar.setContentScrimColor(mutedColor);
+                                    mCollapsingToolbar.setStatusBarScrimColor(darkMutedColor);
+                                }
+                            });
+
                         }
 
                         @Override

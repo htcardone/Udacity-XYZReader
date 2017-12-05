@@ -16,7 +16,7 @@
         android:layout_marginTop="@dimen/list_item_margin"
         android:layout_marginBottom="@dimen/list_item_margin"
         android:foreground="?android:attr/selectableItemBackground"
-        android:elevation="@dimen/cardview_default_elevation"
+        app:cardElevation="@dimen/cardview_default_elevation"
         card_view:cardCornerRadius="@dimen/cardview_default_radius">
 
         <android.support.constraint.ConstraintLayout
@@ -25,18 +25,19 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-            <ImageView
+            <!--suppress AndroidLintContentDescription -->
+            <com.example.xyzreader.ui.DynamicHeightNetworkImageView
                 android:id="@+id/thumbnail"
                 android:layout_width="0dp"
                 android:layout_height="200dp"
                 android:adjustViewBounds="false"
                 android:cropToPadding="false"
                 android:scaleType="centerCrop"
+                android:background="@color/photo_placeholder"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                android:src="@drawable/tools_article_image" />
+                app:layout_constraintTop_toTopOf="parent" />
 
             <android.support.constraint.ConstraintLayout
                 android:layout_width="0dp"

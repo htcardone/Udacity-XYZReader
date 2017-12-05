@@ -85,8 +85,6 @@
         android:layout_width="wrap_content"
         android:layout_margin="@dimen/fab_margin"
         android:src="@drawable/ic_share"
-        app:elevation="@dimen/fab_elevation"
-        app:pressedTranslationZ="@dimen/fab_press_translation_z"
         app:layout_anchor="@id/collapsing_toolbar"
         app:layout_anchorGravity="bottom|right|end"/>
 </android.support.design.widget.CoordinatorLayout>
